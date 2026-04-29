@@ -25,6 +25,9 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v5
 
+            - name: Install libdnf5
+              run: sudo apt-get update && sudo apt-get install -y libdnf5-2 libdnf5-dev
+
             - name: Set up Node.js
               uses: actions/setup-node@v6
               with:
@@ -53,6 +56,9 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v5
+
+            - name: Install libdnf5
+              run: sudo apt-get update && sudo apt-get install -y libdnf5-2 libdnf5-dev
 
             - name: Setup npm authentication
               uses: actions/setup-node@v6
