@@ -18,7 +18,7 @@ if(NOT DNF_LIB)
 	message(FATAL_ERROR "Could not find libdnf5 library. Install libdnf5.")
 endif()
 
-file(GLOB SRC "src/native/*")
+file(GLOB SRC "src/*")
 
 add_library(${PROJECT_NAME} SHARED ${SRC} ${CMAKE_JS_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES
