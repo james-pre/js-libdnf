@@ -2,7 +2,16 @@
 
 This library is a best-effort set of JS bindings for libdnf5.
 
+## Installation
+
+```sh
+npm install libdnf
+```
+
 ## Usage Example
+
+> [!IMPORTANT]
+> Running transactions requires root permissions (at least for system-level ones)
 
 ```ts
 import * as dnf5 from 'libdnf';
@@ -26,7 +35,7 @@ for (const pkg of tx.packages) {
 	console.log(pkg.action, pkg.package.nevra, pkg.reason);
 }
 
-const result = await rl.question('Is this okay [y/N]: ');
+const result = await rl.question('Is this okay [y/N]: ').catch(() => null);
 if (result != 'y') {
 	console.log('Aborted.');
 	process.exit(0);
@@ -40,3 +49,13 @@ process.stdout.write('Running... ');
 tx.run();
 console.log('done.');
 ```
+
+## Frequent errors
+
+#### `TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".node" for .../dist/libdnf5.node`
+
+You need to enable `--experimental-addon-modules`, this can be done via an env option.
+
+#### `Error: Failed to open lock file "/run/dnf/rpmtransaction.lock": (13) - Permission denied`
+
+Running a transaction requires root privileges.
