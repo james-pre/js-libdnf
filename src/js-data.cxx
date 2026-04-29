@@ -1,8 +1,15 @@
 
 #include "common.hxx"
 #include "js-data.hxx"
-#include "callbacks.hxx"
 #include <string>
+
+Value fromNullableString(const Env &env, const char *value)
+{
+	if (!value)
+		return env.Null();
+
+	return String::New(env, value);
+}
 
 std::vector<std::string> toStringVector(const Array &array)
 {
@@ -190,96 +197,6 @@ Object fromTxPackage(const Env &env, const libdnf5::base::TransactionPackage &tx
 	result.Set("reason", transaction_item_reason_to_string(txpkg.get_reason()));
 	result.Set("replaces", fromVector(env, txpkg.get_replaces(), fromPackage));
 	result.Set("replacedBy", fromVector(env, txpkg.get_replaced_by(), fromPackage));
-
-	return result;
-}
-
-static Object getOptionsObject(const CallbackInfo &info)
-{
-	Env env = info.Env();
-
-	if (info.Length() == 0 || info[0].IsUndefined() || info[0].IsNull())
-		return Object::New(env);
-
-	if (!info[0].IsObject())
-		throw TypeError::New(env, "Expected an options object");
-
-	return info[0].As<Object>();
-}
-
-static Value transaction_download(const CallbackInfo &info)
-{
-	Env env = info.Env();
-	auto *tx = static_cast<libdnf5::base::Transaction *>(info.Data());
-
-	Object options = getOptionsObject(info);
-
-	try
-	{
-		base.set_download_callbacks(std::make_unique<PackageDownloadCallbacks>(env, options));
-		tx->download();
-	}
-	catch (const std::exception &e)
-	{
-		throw Error::New(env, e.what());
-	}
-
-	return env.Undefined();
-}
-
-static Value transaction_run(const CallbackInfo &info)
-{
-	Env env = info.Env();
-	auto *tx = static_cast<libdnf5::base::Transaction *>(info.Data());
-
-	Object options = getOptionsObject(info);
-
-	try
-	{
-		tx->set_callbacks(std::make_unique<PackageTransactionCallbacks>(env, options));
-		tx->run();
-	}
-	catch (const std::exception &e)
-	{
-		throw Error::New(env, e.what());
-	}
-
-	return env.Undefined();
-}
-
-static Value transaction_set_description(const CallbackInfo &info)
-{
-	Env env = info.Env();
-	auto *tx = static_cast<libdnf5::base::Transaction *>(info.Data());
-
-	if (info.Length() < 1 || !info[0].IsString())
-		throw TypeError::New(env, "Expected a string");
-
-	try
-	{
-		tx->set_description(info[0].As<String>().Utf8Value());
-	}
-	catch (const std::exception &e)
-	{
-		throw Error::New(env, e.what());
-	}
-
-	return env.Undefined();
-}
-
-Object fromTransaction(const Env &env, libdnf5::base::Transaction &transaction)
-{
-	Object result = Object::New(env);
-
-	result.Set("packages", fromVector(env, transaction.get_transaction_packages(), fromTxPackage));
-	result.Set("packagesCount", transaction.get_transaction_packages_count());
-	result.Set("groups", fromVector(env, transaction.get_transaction_groups(), fromTxGroup));
-	result.Set("brokenDependencyPackages", fromVector(env, transaction.get_broken_dependency_packages(), fromPackage));
-	result.Set("conflictingPackages", fromVector(env, transaction.get_conflicting_packages(), fromPackage));
-	result.Set("isEmpty", transaction.empty());
-	result.Set("download", Function::New(env, transaction_download, "Transaction::download", &transaction));
-	result.Set("run", Function::New(env, transaction_run, "Transaction::run", &transaction));
-	result.Set("setDescription", Function::New(env, transaction_set_description, "Transaction::set_description", &transaction));
 
 	return result;
 }

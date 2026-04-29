@@ -135,13 +135,16 @@ export interface TransactionRunOptions {
 	onVerifyStop?: TransactionTotalCallback;
 }
 
-export interface Transaction {
-	packages: TransactionPackage[];
-	packagesCount: number;
-	groups: TransactionGroup[];
-	brokenDependencyPackages: Package[];
-	conflictingPackages: Package[];
-	isEmpty: boolean;
+export declare class Transaction {
+	private constructor();
+
+	get packages(): TransactionPackage[];
+	get packagesCount(): number;
+	get groups(): TransactionGroup[];
+	get brokenDependencyPackages(): Package[];
+	get conflictingPackages(): Package[];
+	get isEmpty(): boolean;
+
 	download(options?: TransactionDownloadOptions): void;
 	run(options?: TransactionRunOptions): void;
 	setDescription(description: string): void;

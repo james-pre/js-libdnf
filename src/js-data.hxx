@@ -28,11 +28,13 @@ Array fromVector(const Env &env, const std::vector<T> &values, Convert &&convert
 	return result;
 }
 
+Value fromNullableString(const Env &env, const char *value);
+
 std::vector<std::string> toStringVector(const Array &array);
 Array fromStringVector(const Env &env, const std::vector<std::string> &strings);
 
 Object fromNevra(const Env &env, const libdnf5::rpm::Nevra &nevra);
 
 Object fromPackage(const Env &env, const libdnf5::rpm::Package &pkg);
+Object fromTxGroup(const Env &env, const libdnf5::base::TransactionGroup &txgroup);
 Object fromTxPackage(const Env &env, const libdnf5::base::TransactionPackage &txpkg);
-Object fromTransaction(const Env &env, libdnf5::base::Transaction &transaction);

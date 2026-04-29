@@ -3,6 +3,25 @@
 #include "common.hxx"
 #include "js-data.hxx"
 
+static void setCallback(
+	const Object &options,
+	const char *name,
+	FunctionReference &target)
+{
+	if (!options.Has(name))
+		return;
+
+	Value value = options.Get(name);
+
+	if (value.IsUndefined() || value.IsNull())
+		return;
+
+	if (!value.IsFunction())
+		throw TypeError::New(options.Env(), std::string(name) + " must be a function");
+
+	target = Persistent(value.As<Function>());
+}
+
 class PackageDownloadCallbacks final : public libdnf5::repo::DownloadCallbacks
 {
 public:
@@ -22,25 +41,6 @@ private:
 	FunctionReference onEnd;
 	FunctionReference onMirrorFailure;
 
-	static void setCallback(
-		const Object &options,
-		const char *name,
-		FunctionReference &target)
-	{
-		if (!options.Has(name))
-			return;
-
-		Value value = options.Get(name);
-
-		if (value.IsUndefined() || value.IsNull())
-			return;
-
-		if (!value.IsFunction())
-			throw TypeError::New(options.Env(), std::string(name) + " must be a function");
-
-		target = Persistent(value.As<Function>());
-	}
-
 	void *add_new_download(
 		void *user_data,
 		const char *description,
@@ -49,7 +49,7 @@ private:
 		if (!onDownload.IsEmpty())
 		{
 			onDownload.Call({
-				String::New(env, description),
+				fromNullableString(env, description),
 				Number::New(env, total_to_download),
 			});
 		}
@@ -82,7 +82,7 @@ private:
 		{
 			onEnd.Call({
 				Number::New(env, static_cast<int>(status)),
-				String::New(env, msg),
+				fromNullableString(env, msg),
 			});
 		}
 
@@ -98,9 +98,9 @@ private:
 		if (!onMirrorFailure.IsEmpty())
 		{
 			onMirrorFailure.Call({
-				String::New(env, msg),
-				String::New(env, url),
-				String::New(env, metadata),
+				fromNullableString(env, msg),
+				fromNullableString(env, url),
+				fromNullableString(env, metadata),
 			});
 		}
 
@@ -173,25 +173,6 @@ private:
 	FunctionReference onVerifyProgress;
 	FunctionReference onVerifyStart;
 	FunctionReference onVerifyStop;
-
-	static void setCallback(
-		const Object &options,
-		const char *name,
-		FunctionReference &target)
-	{
-		if (!options.Has(name))
-			return;
-
-		Value value = options.Get(name);
-
-		if (value.IsUndefined() || value.IsNull())
-			return;
-
-		if (!value.IsFunction())
-			throw TypeError::New(options.Env(), std::string(name) + " must be a function");
-
-		target = Persistent(value.As<Function>());
-	}
 
 	Value fromOptionalTxPackage(const libdnf5::base::TransactionPackage *item) const
 	{

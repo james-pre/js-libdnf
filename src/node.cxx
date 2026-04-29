@@ -1,9 +1,11 @@
+#include <memory>
 #include <libdnf5/base/goal.hpp>
 #include <libdnf5/repo/package_downloader.hpp>
 #include "common.hxx"
 #include "query.hxx"
 #include "goal.hxx"
 #include "js-data.hxx"
+#include "transaction.hxx"
 
 Value PrepareTransaction(const CallbackInfo &args)
 {
@@ -11,9 +13,9 @@ Value PrepareTransaction(const CallbackInfo &args)
 	libdnf5::Goal goal(base);
 	createGoal(goal, args[0].As<Object>());
 
-	libdnf5::base::Transaction transaction = goal.resolve();
+	auto transaction = std::make_unique<libdnf5::base::Transaction>(goal.resolve());
 
-	return fromTransaction(args.Env(), transaction);
+	return fromTransaction(args.Env(), std::move(transaction));
 }
 
 Value Query(const CallbackInfo &args)
@@ -49,9 +51,11 @@ Object Init(Env env, Object exports)
 	base.load_config();
 	base.setup();
 
-	exports.Set(String::New(env, "loadRepos"), Function::New(env, LoadRepos));
-	exports.Set(String::New(env, "query"), Function::New(env, Query));
-	exports.Set(String::New(env, "transaction"), Function::New(env, PrepareTransaction));
+	Transaction::Init(env, exports);
+
+	exports.Set("loadRepos", Function::New(env, LoadRepos));
+	exports.Set("query", Function::New(env, Query));
+	exports.Set("transaction", Function::New(env, PrepareTransaction));
 	return exports;
 }
 
