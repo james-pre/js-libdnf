@@ -23,6 +23,12 @@
 		".": "./dist/index.js",
 		"./*": "./dist/*.js"
 	},
+	"keywords": [
+		"dnf",
+		"dnf5",
+		"libdnf",
+		"libdnf5"
+	],
 	"files": [
 		"dist"
 	],
