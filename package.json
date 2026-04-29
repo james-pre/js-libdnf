@@ -38,7 +38,7 @@
 		"lint": "tsc --noEmit && eslint src",
 		"test": "tsx --test",
 		"build": "bash ./scripts/build.sh",
-		"prepublishOnly": "npx tsc"
+		"prepublishOnly": "bash ./scripts/build.sh"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
