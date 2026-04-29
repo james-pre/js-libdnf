@@ -18,15 +18,38 @@ declare class Transaction {
 	get conflictingPackages(): Package[];
 	get isEmpty(): boolean;
 
+	/**
+	 * Download the needed packages
+	 */
 	download(options?: TransactionDownloadOptions): void;
+
+	/**
+	 * Run the transaction
+	 */
 	run(options?: TransactionRunOptions): void;
+
+	/**
+	 * Set the description to be used in the transaction history
+	 */
 	setDescription(description: string): void;
 }
 
 declare const dnf5: {
 	Transaction: typeof Transaction;
+
+	/**
+	 * Load default repositories
+	 */
 	loadRepos(): void;
+
+	/**
+	 * Query the loaded repositories using the given filters
+	 */
 	query(...filters: PackageQueryFilter[]): Package[];
+
+	/**
+	 * Create a new transaction
+	 */
 	transaction(init: TransactionInit): Transaction;
 };
 
