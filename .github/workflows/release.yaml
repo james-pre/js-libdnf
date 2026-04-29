@@ -55,7 +55,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v5
 
-            - name: Install libdnf5
+            - name: Install native dependencies
               run: dnf install -y cmake gcc-c++ git libatomic libdnf5 libdnf5-devel make ninja-build python3
 
             - name: Setup npm authentication
