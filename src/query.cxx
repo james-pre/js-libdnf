@@ -1,8 +1,9 @@
 #include "common.hxx"
 #include "query.hxx"
 #include "js-data.hxx"
+#include "schema.hxx"
 
-std::optional<QueryCmp> toQueryCmp(std::string cmp)
+QueryCmp toQueryCmp(const std::string cmp)
 {
 
 	if (cmp == "eq")
@@ -54,47 +55,30 @@ std::optional<QueryCmp> toQueryCmp(std::string cmp)
 	else if (cmp == "not_iglob")
 		return QueryCmp::NOT_IGLOB;
 	else
-		return {};
+		throw std::runtime_error("Invalid comparison operator: " + cmp);
 }
 
-QueryCmp jsToQueryCmp(const Value &value)
+template <typename T>
+std::vector<T> valueFromSingleOrArray(std::variant<std::vector<T>, T> value)
 {
-	if (value.IsUndefined() || value.IsNull())
-		return QueryCmp::EQ;
-
-	std::string cmp = value.ToString().Utf8Value();
-
-	std::optional<QueryCmp> result = toQueryCmp(cmp);
-
-	if (!result)
-		throw Error::New(value.Env(), "Invalid comparison operator: " + cmp);
-
-	return *result;
+	if (value.index() == 0)
+		return std::get<0>(value);
+	else
+		return std::vector<T>{std::get<1>(value)};
 }
 
-libdnf5::advisory::AdvisoryQuery createAdvisoryQuery(const Value &_value)
+libdnf5::advisory::AdvisoryQuery createAdvisoryQuery(const std::vector<AdvisoryQueryFilter> &filters)
 {
-
-	if (!_value.IsArray())
-		throw TypeError::New(_value.Env(), "Invalid advisory filter: expected an array");
-
-	const Array &value = _value.As<Array>();
+	if (filters.empty())
+		throw std::runtime_error("Expected advisory filters");
 
 	libdnf5::advisory::AdvisoryQuery query(base);
 
-	for (unsigned int i = 0; i < value.Length(); i++)
+	for (const auto &filter : filters)
 	{
-		if (!value[i].IsObject())
-			throw TypeError::New(value.Env(), "Invalid advisory filter at index " + std::to_string(i));
-
-		Object filter = value[i].As<Object>();
-
-		std::string field = filter.Get("filter").ToString().Utf8Value();
-
-		Value _value = filter.Get("value");
-		std::vector<std::string> value = _value.IsArray() ? toStringVector(_value.As<Array>()) : std::vector<std::string>{_value.ToString().Utf8Value()};
-
-		QueryCmp cmp = jsToQueryCmp(filter.Get("cmp"));
+		const std::string field = filter.filter;
+		const std::vector<std::string> value = valueFromSingleOrArray(filter.value);
+		const QueryCmp cmp = toQueryCmp(filter.cmp);
 
 		if (field == "name")
 			query.filter_name(value, cmp);
@@ -117,38 +101,19 @@ libdnf5::advisory::AdvisoryQuery createAdvisoryQuery(const Value &_value)
 	return query;
 }
 
-libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Value> filters)
+libdnf5::rpm::PackageQuery createPackageQuery(std::span<const PackageQueryFilter> filters)
 {
 	libdnf5::rpm::PackageQuery query(base);
 
-	for (unsigned int i = 0; i < filters.size(); i++)
+	for (const auto &filter : filters)
 	{
-		Value _filter = filters[i];
-		Object filter;
-
-		if (_filter.IsObject())
-			filter = _filter.As<Object>();
-		else if (_filter.IsString())
-		{
-			filter = Object::New(env);
-			filter.Set("type", _filter.As<String>());
-		}
-		else
-			throw TypeError::New(env, "Invalid filter at index " + std::to_string(i));
-
-		std::string field = filter.Get("type").ToString().Utf8Value();
-
-		Value _value = filter.Get("value");
-		std::vector<std::string> value = _value.IsArray() ? toStringVector(_value.As<Array>()) : std::vector<std::string>{_value.ToString().Utf8Value()};
-
-		Value _limit = filter.Get("limit");
-		bool _limit_lossless;
-		int64_t limit = _limit.IsBigInt() ? _limit.As<BigInt>().Int64Value(&_limit_lossless) : _limit.ToNumber().Int64Value();
-
-		QueryCmp cmp = jsToQueryCmp(filter.Get("cmp"));
+		const std::string field = filter.type;
+		const std::vector<std::string> value = valueFromSingleOrArray(filter.value);
+		const std::vector<AdvisoryQueryFilter> advisories = filter.advisories.value_or(std::vector<AdvisoryQueryFilter>({}));
+		const QueryCmp cmp = toQueryCmp(filter.cmp);
 
 		if (field == "advisories")
-			query.filter_advisories(createAdvisoryQuery(_value), cmp);
+			query.filter_advisories(createAdvisoryQuery(advisories), cmp);
 		else if (field == "arch")
 			query.filter_arch(value, cmp);
 		else if (field == "available")
@@ -164,9 +129,9 @@ libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Va
 		else if (field == "duplicates")
 			query.filter_duplicates();
 		else if (field == "earliest_evr")
-			query.filter_earliest_evr(limit);
+			query.filter_earliest_evr(filter.limit);
 		else if (field == "earliest_evr_any_arch")
-			query.filter_earliest_evr_any_arch(limit);
+			query.filter_earliest_evr_any_arch(filter.limit);
 		else if (field == "enhances")
 			query.filter_enhances(value, cmp);
 		else if (field == "epoch")
@@ -174,7 +139,7 @@ libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Va
 		else if (field == "evr")
 			query.filter_evr(value, cmp);
 		else if (field == "extras")
-			query.filter_extras(filter.Get("exact_evr").ToBoolean());
+			query.filter_extras(filter.exact_evr);
 		else if (field == "file")
 			query.filter_file(value, cmp);
 		else if (field == "from_repo_id")
@@ -184,14 +149,14 @@ libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Va
 		else if (field == "installonly")
 			query.filter_installonly();
 		else if (field == "latest_evr")
-			query.filter_latest_evr(limit);
+			query.filter_latest_evr(filter.limit);
 		else if (field == "latest_evr_any_arch")
-			query.filter_latest_evr_any_arch(limit);
+			query.filter_latest_evr_any_arch(filter.limit);
 		else if (field == "latest_unresolved_advisories")
 		{
 			libdnf5::rpm::PackageQuery installed(base);
 			installed.filter_installed();
-			query.filter_latest_unresolved_advisories(createAdvisoryQuery(_value), installed, cmp);
+			query.filter_latest_unresolved_advisories(createAdvisoryQuery(advisories), installed, cmp);
 		}
 		else if (field == "leaves")
 			query.filter_leaves();
@@ -204,10 +169,11 @@ libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Va
 		else if (field == "name_arch")
 		{
 			libdnf5::rpm::PackageSet package_set(base);
-			if (!_value.IsArray())
-				throw TypeError::New(env, "Invalid value for 'name_arch' filter");
 
-			for (const auto &pkg : createPackageQuery(_value.As<Array>()))
+			if (filter.na_from.empty())
+				throw std::runtime_error("Invalid value for 'name_arch' filter");
+
+			for (const auto &pkg : createPackageQuery(filter.na_from))
 				package_set.add(pkg);
 
 			query.filter_name_arch(package_set, cmp);
@@ -223,7 +189,7 @@ libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Va
 		else if (field == "reboot_suggested")
 			query.filter_reboot_suggested();
 		else if (field == "recent")
-			query.filter_recent(filter.Get("timestamp").ToNumber());
+			query.filter_recent(filter.timestamp);
 		else if (field == "recommends")
 			query.filter_recommends(value, cmp);
 		else if (field == "release")
@@ -255,7 +221,7 @@ libdnf5::rpm::PackageQuery createPackageQuery(const Env &env, std::span<const Va
 		else if (field == "versionlock")
 			query.filter_versionlock();
 		else
-			throw Error::New(env, "Invalid filter type: " + field);
+			throw std::runtime_error("Invalid filter type: " + field);
 	}
 
 	return query;

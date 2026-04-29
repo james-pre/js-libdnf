@@ -282,6 +282,28 @@ namespace schema
 		result_type fallback_;
 	};
 
+	template <typename Getter>
+	class LazySchema : public Schema<
+						   LazySchema<Getter>,
+						   typename std::remove_cvref_t<std::invoke_result_t<Getter>>::result_type>
+	{
+	public:
+		using schema_type = std::remove_cvref_t<std::invoke_result_t<Getter>>;
+		using result_type = typename schema_type::result_type;
+
+		explicit LazySchema(Getter getter) : getter_(std::move(getter))
+		{
+		}
+
+		result_type parseValue(const Value &value, const ParseContext &ctx) const
+		{
+			return std::invoke(getter_).parseAt(value, ctx);
+		}
+
+	private:
+		Getter getter_;
+	};
+
 	namespace detail
 	{
 		template <typename InnerSchema>
@@ -532,6 +554,12 @@ namespace schema
 	VariantSchema<std::decay_t<Schemas>...> variant(Schemas... schemas)
 	{
 		return VariantSchema<std::decay_t<Schemas>...>(std::move(schemas)...);
+	}
+
+	template <typename Getter>
+	LazySchema<std::decay_t<Getter>> lazy(Getter getter)
+	{
+		return LazySchema<std::decay_t<Getter>>(std::move(getter));
 	}
 
 }

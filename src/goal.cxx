@@ -20,18 +20,18 @@ struct GoalOptions
 	std::vector<GoalOperation> operations;
 };
 
-libdnf5::transaction::TransactionItemReason requireReason(const Env &env, const GoalOperation &op)
+libdnf5::transaction::TransactionItemReason requireReason(const GoalOperation &op)
 {
 
 	if (!op.reason.has_value())
-		throw Error::New(env, "'reason' is required");
+		throw std::runtime_error("'reason' is required");
 
 	return libdnf5::transaction::transaction_item_reason_from_string(op.reason.value());
 }
 
 namespace s = schema;
 
-auto goalSchema = s::object<GoalOptions>({
+static const auto goalSchema = s::object<GoalOptions>({
 	s::field<&GoalOptions::allowErasing>("allowErasing", s::boolean().coerce().defaultTo(false)),
 	s::field<&GoalOptions::operations>(
 		"operations",
@@ -66,9 +66,9 @@ void createGoal(libdnf5::Goal &goal, const Object &rawOptions)
 		else if (type == "downgrade")
 			goal.add_downgrade(spec, settings);
 		else if (type == "group_install")
-			goal.add_group_install(spec, requireReason(env, op), settings);
+			goal.add_group_install(spec, requireReason(op), settings);
 		else if (type == "group_remove")
-			goal.add_group_remove(spec, requireReason(env, op), settings);
+			goal.add_group_remove(spec, requireReason(op), settings);
 		else if (type == "group_upgrade")
 			goal.add_group_upgrade(spec, settings);
 		else if (type == "install")
@@ -102,7 +102,7 @@ void createGoal(libdnf5::Goal &goal, const Object &rawOptions)
 
 			libdnf5::rpm::PackageSet package_set(base);
 
-			for (const auto &pkg : createPackageQuery(env, op.packages.value()))
+			for (const auto &pkg : createPackageQuery(op.packages.value()))
 				package_set.add(pkg);
 
 			goal.add_rpm_install_or_reinstall(package_set, settings);
@@ -112,7 +112,7 @@ void createGoal(libdnf5::Goal &goal, const Object &rawOptions)
 			if (!op.groupId.has_value())
 				throw Error::New(env, "Missing 'groupId' for 'rpm_reason_change' operation");
 
-			goal.add_rpm_reason_change(spec, requireReason(env, op), op.groupId.value(), settings);
+			goal.add_rpm_reason_change(spec, requireReason(op), op.groupId.value(), settings);
 		}
 		else if (type == "rpm_reinstall")
 			goal.add_rpm_reinstall(spec, settings);

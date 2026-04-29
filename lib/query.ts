@@ -34,7 +34,7 @@ export interface AdvisoryQueryFilterEntry {
 
 export interface PackageQueryFilterAdvisories {
 	type: 'advisories' | 'latest_unresolved_advisories';
-	value: AdvisoryQueryFilterEntry[];
+	advisories: AdvisoryQueryFilterEntry[];
 	cmp?: QueryCmp;
 }
 
@@ -45,7 +45,7 @@ export interface PackageQueryFilterExtras {
 
 export interface PackageQueryFilterNameArch {
 	type: 'name_arch';
-	value: PackageQueryFilter[];
+	na_from: PackageQueryFilter[];
 	cmp?: QueryCmp;
 }
 
@@ -84,7 +84,7 @@ export type PackageQueryFilterWithLimitType =
 
 export interface PackageQueryFilterWithLimit {
 	type: PackageQueryFilterWithLimitType;
-	value: string | string[];
+	limit?: number;
 	cmp?: QueryCmp;
 }
 
