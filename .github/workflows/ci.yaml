@@ -10,7 +10,7 @@ jobs:
     ci:
         runs-on: ubuntu-latest
         name: Continuous Integration
-        container: fedora:42
+        container: fedora:44
         permissions:
             contents: read
         defaults:
