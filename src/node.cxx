@@ -39,7 +39,7 @@ Value LoadRepos(const CallbackInfo &args)
 	// Load repos
 	auto repo_sack = base.get_repo_sack();
 	repo_sack->create_repos_from_system_configuration();
-	// base.lock_system_repo(libdnf5::utils::LockAccess::WRITE, libdnf5::utils::LockBlocking::BLOCKING);
+	base.lock_system_repo(libdnf5::utils::LockAccess::WRITE, libdnf5::utils::LockBlocking::BLOCKING);
 	repo_sack->load_repos();
 
 	return env.Undefined();
