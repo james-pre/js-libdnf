@@ -3,8 +3,7 @@
 import { createRequire } from 'node:module';
 import type dnf5Type from './libdnf5.node';
 
-const _require = createRequire(import.meta.url);
-const dnf5: typeof dnf5Type = _require('./libdnf5.node');
+const dnf5: typeof dnf5Type = createRequire(import.meta.url)('./libdnf5.node');
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Group, Package } from './data.js';
