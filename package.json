@@ -68,5 +68,8 @@
 	},
 	"dependencies": {
 		"node-addon-api": "^8.7.0"
+	},
+	"allowScripts": {
+		"esbuild": true
 	}
 }
