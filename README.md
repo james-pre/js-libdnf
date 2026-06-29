@@ -51,8 +51,8 @@ console.log('done.');
 
 #### `TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".node" for .../dist/libdnf5.node`
 
-You need to enable `--experimental-addon-modules`, this can be done via an env option.
+You need to enable `--experimental-addon-modules`, this can be done via an env option. This should no longer be an issue after v0.3.0
 
 #### `Error: Failed to open lock file "/run/dnf/rpmtransaction.lock": (13) - Permission denied`
 
-Running a transaction requires root privileges.
+Running a write transaction requires root privileges. You can also pass `write: false` into `loadRepos` if your transaction is read-only.
