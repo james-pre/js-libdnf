@@ -46,14 +46,32 @@ Value QueryGroups(const CallbackInfo &args)
 	return results;
 }
 
+struct LoadReposOptions
+{
+	bool write;
+	bool blocking;
+};
+
+static const auto LoadReposOptionsSchema = schema::object<LoadReposOptions>({
+	schema::field<&LoadReposOptions::write>("write", schema::boolean().coerce().defaultTo(true)),
+	schema::field<&LoadReposOptions::blocking>("blocking", schema::boolean().coerce().defaultTo(true)),
+});
+
 Value LoadRepos(const CallbackInfo &args)
 {
 	Env env = args.Env();
 
+	// Parse options
+	LoadReposOptions options = LoadReposOptionsSchema.parse(args.Length() > 0 ? args[0] : Object::New(env));
+
 	// Load repos
 	auto repo_sack = base.get_repo_sack();
 	repo_sack->create_repos_from_system_configuration();
-	base.lock_system_repo(libdnf5::utils::LockAccess::WRITE, libdnf5::utils::LockBlocking::BLOCKING);
+
+	base.lock_system_repo(
+		options.write ? libdnf5::utils::LockAccess::WRITE : libdnf5::utils::LockAccess::READ,
+		options.blocking ? libdnf5::utils::LockBlocking::BLOCKING : libdnf5::utils::LockBlocking::NON_BLOCKING);
+
 	repo_sack->load_repos();
 
 	return env.Undefined();
