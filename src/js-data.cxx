@@ -161,7 +161,7 @@ Object fromGroup(const Env &env, libdnf5::comps::Group &group)
 {
 	Object result = Object::New(env);
 
-	result.Set("groupId", group.get_groupid());
+	result.Set("id", group.get_groupid());
 	result.Set("name", group.get_name());
 	result.Set("description", group.get_description());
 	result.Set("translatedName", group.get_translated_name());

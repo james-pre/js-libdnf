@@ -83,7 +83,7 @@ export interface CompPackage {
 }
 
 export interface Group {
-	groupId: string;
+	id: string;
 	name: string;
 	description: string;
 	translatedName: string;
