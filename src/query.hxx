@@ -1,6 +1,7 @@
 #pragma once
 
 #include <span>
+#include <libdnf5/comps/group/query.hpp>
 #include "common.hxx"
 #include "schema.hxx"
 
@@ -54,6 +55,60 @@ inline const schema::ObjectSchema<PackageQueryFilter> &PackageQueryFilterSchema(
 	});
 
 	return schema;
+}
+
+struct GroupQueryFilter
+{
+	std::string type;
+	std::variant<std::vector<std::string>, std::string> value;
+	std::string cmp;
+	bool enabled;
+};
+
+inline const schema::ObjectSchema<GroupQueryFilter> &GroupQueryFilterSchema()
+{
+	static const auto schema = s::object<GroupQueryFilter>({
+		s::field<&GroupQueryFilter::type>("type", s::string()),
+		s::field<&GroupQueryFilter::value>("value", s::variant(s::array(s::string().coerce()), s::string().coerce()).defaultTo("")),
+		s::field<&GroupQueryFilter::cmp>("cmp", s::string().coerce().defaultTo("eq")),
+		s::field<&GroupQueryFilter::enabled>("enabled", s::boolean().coerce().defaultTo(true)),
+	});
+
+	return schema;
+}
+
+libdnf5::comps::GroupQuery createGroupQuery(const std::vector<GroupQueryFilter> &filters);
+
+inline libdnf5::comps::GroupQuery createGroupQuery(const std::vector<Value> &filterValues)
+{
+	std::vector<GroupQueryFilter> filters;
+	filters.reserve(filterValues.size());
+	for (unsigned int i = 0; i < filterValues.size(); i++)
+	{
+		Value _filter = filterValues[i];
+
+		if (_filter.IsString())
+		{
+			Object newFilter = Object::New(_filter.Env());
+			newFilter.Set("type", _filter.As<String>());
+			_filter = newFilter;
+		}
+
+		filters.push_back(GroupQueryFilterSchema().parse(_filter));
+	}
+
+	return createGroupQuery(filters);
+}
+
+inline libdnf5::comps::GroupQuery createGroupQuery(const CallbackInfo &args)
+{
+	std::vector<Value> filters;
+	filters.reserve(args.Length());
+
+	for (unsigned int i = 0; i < args.Length(); i++)
+		filters.push_back(args[i]);
+
+	return createGroupQuery(filters);
 }
 
 libdnf5::rpm::PackageQuery createPackageQuery(const std::vector<PackageQueryFilter> &filters);

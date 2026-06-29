@@ -32,6 +32,20 @@ Value Query(const CallbackInfo &args)
 	return results;
 }
 
+Value QueryGroups(const CallbackInfo &args)
+{
+	Env env = args.Env();
+
+	libdnf5::comps::GroupQuery query = createGroupQuery(args);
+
+	Array results = Array::New(env);
+
+	for (libdnf5::comps::Group group : query)
+		results.Set(results.Length(), fromGroup(env, group));
+
+	return results;
+}
+
 Value LoadRepos(const CallbackInfo &args)
 {
 	Env env = args.Env();
@@ -55,6 +69,7 @@ Object Init(Env env, Object exports)
 
 	exports.Set("loadRepos", Function::New(env, LoadRepos));
 	exports.Set("query", Function::New(env, Query));
+	exports.Set("queryGroups", Function::New(env, QueryGroups));
 	exports.Set("transaction", Function::New(env, PrepareTransaction));
 	return exports;
 }

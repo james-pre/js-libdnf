@@ -1,7 +1,7 @@
 import dnf5 from './libdnf5.node';
 import type * as classes from './_classes.js';
 
-export const { Transaction, loadRepos, query, transaction } = dnf5;
+export const { Transaction, loadRepos, query, queryGroups, transaction } = dnf5;
 export type Transaction = classes.Transaction;
 
 export * from './data.js';

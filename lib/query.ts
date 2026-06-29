@@ -118,3 +118,17 @@ export type PackageQueryFilter =
 	| PackageQueryFilterExtras
 	| PackageQueryFilterNameArch
 	| PackageQueryFilterRecent;
+
+export interface GroupQueryFilterWithValue {
+	type: 'groupid' | 'name' | 'package_name';
+	value: string | string[];
+	cmp?: QueryCmp;
+}
+
+export interface GroupQueryFilterBoolean {
+	type: 'uservisible' | 'default' | 'installed';
+	/** The boolean value to match against. Defaults to `true`. */
+	enabled?: boolean;
+}
+
+export type GroupQueryFilter = GroupQueryFilterWithValue | GroupQueryFilterBoolean;

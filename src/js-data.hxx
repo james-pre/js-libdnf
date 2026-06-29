@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <libdnf5/comps/group/group.hpp>
 #include "common.hxx"
 
 // JS Array -> std::vector<T>
@@ -36,5 +37,6 @@ Array fromStringVector(const Env &env, const std::vector<std::string> &strings);
 Object fromNevra(const Env &env, const libdnf5::rpm::Nevra &nevra);
 
 Object fromPackage(const Env &env, const libdnf5::rpm::Package &pkg);
+Object fromGroup(const Env &env, libdnf5::comps::Group &group);
 Object fromTxGroup(const Env &env, const libdnf5::base::TransactionGroup &txgroup);
 Object fromTxPackage(const Env &env, const libdnf5::base::TransactionPackage &txpkg);

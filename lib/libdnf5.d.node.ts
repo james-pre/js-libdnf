@@ -1,5 +1,5 @@
-import type { Package } from './data.ts';
-import type { PackageQueryFilter } from './query.ts';
+import type { Group, Package } from './data.ts';
+import type { GroupQueryFilter, PackageQueryFilter } from './query.ts';
 import type { TransactionInit } from './transaction.ts';
 import type { Transaction } from './_classes.ts';
 
@@ -15,6 +15,11 @@ declare const dnf5: {
 	 * Query the loaded repositories using the given filters
 	 */
 	query(this: void, ...filters: PackageQueryFilter[]): Package[];
+
+	/**
+	 * Query the comps groups in the loaded repositories using the given filters
+	 */
+	queryGroups(this: void, ...filters: GroupQueryFilter[]): Group[];
 
 	/**
 	 * Create a new transaction

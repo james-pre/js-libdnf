@@ -101,6 +101,35 @@ libdnf5::advisory::AdvisoryQuery createAdvisoryQuery(const std::vector<AdvisoryQ
 	return query;
 }
 
+libdnf5::comps::GroupQuery createGroupQuery(const std::vector<GroupQueryFilter> &filters)
+{
+	libdnf5::comps::GroupQuery query(base);
+
+	for (const auto &filter : filters)
+	{
+		const std::string field = filter.type;
+		const std::vector<std::string> value = valueFromSingleOrArray(filter.value);
+		const QueryCmp cmp = toQueryCmp(filter.cmp);
+
+		if (field == "groupid")
+			query.filter_groupid(value, cmp);
+		else if (field == "name")
+			query.filter_name(value, cmp);
+		else if (field == "package_name")
+			query.filter_package_name(value, cmp);
+		else if (field == "uservisible")
+			query.filter_uservisible(filter.enabled);
+		else if (field == "default")
+			query.filter_default(filter.enabled);
+		else if (field == "installed")
+			query.filter_installed(filter.enabled);
+		else
+			throw std::runtime_error("Invalid filter type: " + field);
+	}
+
+	return query;
+}
+
 libdnf5::rpm::PackageQuery createPackageQuery(const std::vector<PackageQueryFilter> &filters)
 {
 	libdnf5::rpm::PackageQuery query(base);
