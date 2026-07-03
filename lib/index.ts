@@ -9,6 +9,7 @@ const dnf5: typeof dnf5Type = createRequire(import.meta.url)('./libdnf5.node');
 import type { Group, Package } from './data.js';
 import type { GroupQueryFilter, PackageQueryFilter } from './query.js';
 import type { TransactionInit } from './transaction.js';
+import type { LoadReposOptions } from './options.ts';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 import type * as classes from './_classes.js';

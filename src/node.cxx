@@ -50,19 +50,21 @@ struct LoadReposOptions
 {
 	bool write;
 	bool blocking;
+	bool downloadRequired;
 };
 
 static const auto LoadReposOptionsSchema = schema::object<LoadReposOptions>({
 	schema::field<&LoadReposOptions::write>("write", schema::boolean().coerce().defaultTo(true)),
 	schema::field<&LoadReposOptions::blocking>("blocking", schema::boolean().coerce().defaultTo(true)),
-});
+	schema::field<&LoadReposOptions::downloadRequired>("downloadRequired", schema::boolean().coerce().defaultTo(false)),
+}).defaultTo(LoadReposOptions{ true, true, false });
 
 Value LoadRepos(const CallbackInfo &args)
 {
 	Env env = args.Env();
 
 	// Parse options
-	LoadReposOptions options = LoadReposOptionsSchema.parse(args.Length() > 0 ? args[0] : Object::New(env));
+	LoadReposOptions options = LoadReposOptionsSchema.parse(args[0]);
 
 	// Load repos
 	auto repo_sack = base.get_repo_sack();
@@ -72,7 +74,16 @@ Value LoadRepos(const CallbackInfo &args)
 		options.write ? libdnf5::utils::LockAccess::WRITE : libdnf5::utils::LockAccess::READ,
 		options.blocking ? libdnf5::utils::LockBlocking::BLOCKING : libdnf5::utils::LockBlocking::NON_BLOCKING);
 
-	repo_sack->load_repos();
+	try
+	{
+		repo_sack->load_repos();
+	}
+	catch (const std::exception &ex)
+	{
+
+		if (options.downloadRequired)
+			Error::New(env, ex.what()).ThrowAsJavaScriptException();
+	}
 
 	return env.Undefined();
 }
