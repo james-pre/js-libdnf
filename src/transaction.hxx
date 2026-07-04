@@ -12,16 +12,11 @@ public:
 	static FunctionReference constructor;
 
 	static void Init(const Napi::Env &env, Object &exports);
-	static Object NewInstance(const Napi::Env &env, std::unique_ptr<libdnf5::base::Transaction> transaction);
 
 	Transaction(const CallbackInfo &info);
 
 private:
-	static bool constructing;
-
 	std::unique_ptr<libdnf5::base::Transaction> transaction;
-
-	libdnf5::base::Transaction &tx(const Napi::Env &env);
 
 	Napi::Value getPackages(const CallbackInfo &info);
 	Napi::Value getPackagesCount(const CallbackInfo &info);

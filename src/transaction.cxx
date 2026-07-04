@@ -2,10 +2,10 @@
 
 #include "common.hxx"
 #include "callbacks.hxx"
+#include "goal.hxx"
 #include "js-data.hxx"
 
 FunctionReference Transaction::constructor;
-bool Transaction::constructing = false;
 
 static Object getOptionsObject(const CallbackInfo &info)
 {
@@ -41,78 +41,50 @@ void Transaction::Init(const Napi::Env &env, Object &exports)
 	exports.Set("Transaction", func);
 }
 
-Object Transaction::NewInstance(const Napi::Env &env, std::unique_ptr<libdnf5::base::Transaction> transaction)
+Transaction::Transaction(const CallbackInfo &args)
+	: ObjectWrap<Transaction>(args)
 {
-	constructing = true;
-	Object object;
 
-	try
-	{
-		object = constructor.New({});
-	}
-	catch (...)
-	{
-		constructing = false;
-		throw;
-	}
+	libdnf5::Goal goal(base);
+	createGoal(goal, args[0].As<Object>());
 
-	constructing = false;
-
-	Transaction *wrapper = ObjectWrap<Transaction>::Unwrap(object);
-	wrapper->transaction = std::move(transaction);
-
-	return object;
-}
-
-Transaction::Transaction(const CallbackInfo &info)
-	: ObjectWrap<Transaction>(info)
-{
-	if (!constructing)
-		throw TypeError::New(info.Env(), "Transaction objects cannot be constructed directly");
-}
-
-libdnf5::base::Transaction &Transaction::tx(const Napi::Env &env)
-{
-	if (!transaction)
-		throw Error::New(env, "Transaction has not been initialized");
-
-	return *transaction;
+	transaction = std::make_unique<libdnf5::base::Transaction>(goal.resolve());
 }
 
 Value Transaction::getPackages(const CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
-	return fromVector(env, tx(env).get_transaction_packages(), fromTxPackage);
+	return fromVector(env, transaction->get_transaction_packages(), fromTxPackage);
 }
 
 Value Transaction::getPackagesCount(const CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
-	return Number::New(env, tx(env).get_transaction_packages_count());
+	return Number::New(env, transaction->get_transaction_packages_count());
 }
 
 Value Transaction::getGroups(const CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
-	return fromVector(env, tx(env).get_transaction_groups(), fromTxGroup);
+	return fromVector(env, transaction->get_transaction_groups(), fromTxGroup);
 }
 
 Value Transaction::getBrokenDependencyPackages(const CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
-	return fromVector(env, tx(env).get_broken_dependency_packages(), fromPackage);
+	return fromVector(env, transaction->get_broken_dependency_packages(), fromPackage);
 }
 
 Value Transaction::getConflictingPackages(const CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
-	return fromVector(env, tx(env).get_conflicting_packages(), fromPackage);
+	return fromVector(env, transaction->get_conflicting_packages(), fromPackage);
 }
 
 Value Transaction::getIsEmpty(const CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
-	return Boolean::New(env, tx(env).empty());
+	return Boolean::New(env, transaction->empty());
 }
 
 Value Transaction::download(const CallbackInfo &info)
@@ -121,7 +93,7 @@ Value Transaction::download(const CallbackInfo &info)
 	Object options = getOptionsObject(info);
 
 	base.set_download_callbacks(std::make_unique<PackageDownloadCallbacks>(env, options));
-	tx(env).download();
+	transaction->download();
 
 	return env.Undefined();
 }
@@ -131,8 +103,8 @@ Value Transaction::run(const CallbackInfo &info)
 	Napi::Env env = info.Env();
 	Object options = getOptionsObject(info);
 
-	tx(env).set_callbacks(std::make_unique<PackageTransactionCallbacks>(env, options));
-	tx(env).run();
+	transaction->set_callbacks(std::make_unique<PackageTransactionCallbacks>(env, options));
+	transaction->run();
 
 	return env.Undefined();
 }
@@ -144,7 +116,7 @@ Value Transaction::setDescription(const CallbackInfo &info)
 	if (info.Length() < 1 || !info[0].IsString())
 		throw TypeError::New(env, "Expected a string");
 
-	tx(env).set_description(info[0].As<String>().Utf8Value());
+	transaction->set_description(info[0].As<String>().Utf8Value());
 
 	return env.Undefined();
 }

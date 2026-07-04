@@ -17,11 +17,10 @@
 	},
 	"license": "LGPL-3.0-or-later",
 	"type": "module",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
 	"exports": {
-		".": "./dist/index.js",
-		"./*": "./dist/*.js"
+		".": "./lib/index.js"
 	},
 	"keywords": [
 		"dnf",
@@ -30,7 +29,7 @@
 		"libdnf5"
 	],
 	"files": [
-		"dist"
+		"lib"
 	],
 	"binary": {
 		"napi_versions": [

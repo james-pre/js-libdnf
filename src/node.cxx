@@ -7,17 +7,6 @@
 #include "js-data.hxx"
 #include "transaction.hxx"
 
-Value PrepareTransaction(const CallbackInfo &args)
-{
-
-	libdnf5::Goal goal(base);
-	createGoal(goal, args[0].As<Object>());
-
-	auto transaction = std::make_unique<libdnf5::base::Transaction>(goal.resolve());
-
-	return Transaction::NewInstance(args.Env(), std::move(transaction));
-}
-
 Value Query(const CallbackInfo &args)
 {
 	Env env = args.Env();
@@ -99,7 +88,6 @@ Object Init(Env env, Object exports)
 	exports.Set("loadRepos", Function::New(env, LoadRepos));
 	exports.Set("query", Function::New(env, Query));
 	exports.Set("queryGroups", Function::New(env, QueryGroups));
-	exports.Set("transaction", Function::New(env, PrepareTransaction));
 	return exports;
 }
 

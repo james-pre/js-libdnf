@@ -7,8 +7,7 @@ set -euo pipefail
 
 npx typedoc > /dev/null
 
-npx cmake-js -d "$project_dir" clean
-npx cmake-js -d "$project_dir" build
+npx cmake-js -d "$project_dir" rebuild
 
 npx tsc -p "$project_dir/tsconfig.json"
 

@@ -5,10 +5,9 @@
 		"lib": ["ESNext"],
 		"moduleResolution": "NodeNext",
 		"rootDir": "lib",
-		"outDir": "dist",
 		"strict": true,
-		"declaration": true,
-		"allowArbitraryExtensions": true,
+		"verbatimModuleSyntax": true,
+		"noEmit": true,
 		"types": ["node"]
 	},
 	"include": ["lib/**/*.ts"],

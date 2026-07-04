@@ -134,3 +134,29 @@ export interface TransactionRunOptions {
 	onVerifyProgress?: TransactionAmountTotalCallback;
 	onVerifyStop?: TransactionTotalCallback;
 }
+
+export declare class Transaction {
+	constructor(init: TransactionInit);
+
+	get packages(): TransactionPackage[];
+	get packagesCount(): number;
+	get groups(): TransactionGroup[];
+	get brokenDependencyPackages(): Package[];
+	get conflictingPackages(): Package[];
+	get isEmpty(): boolean;
+
+	/**
+	 * Download the needed packages
+	 */
+	download(options?: TransactionDownloadOptions): void;
+
+	/**
+	 * Run the transaction
+	 */
+	run(options?: TransactionRunOptions): void;
+
+	/**
+	 * Set the description to be used in the transaction history
+	 */
+	setDescription(description: string): void;
+}
