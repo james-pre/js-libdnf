@@ -23,7 +23,7 @@ console.log('done.');
 const packages = dnf5.query({ type: 'name', value: 'kernel' }, 'installed');
 console.log('Installed kernels:', packages.map(pkg => pkg.nevra).join(', '));
 
-const tx = dnf5.transaction({
+const tx = new dnf5.Transaction({
 	operations: [{ type: 'install', spec: 'chromium' }],
 });
 
