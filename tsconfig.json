@@ -8,9 +8,10 @@
 		"strict": true,
 		"verbatimModuleSyntax": true,
 		"noEmit": true,
+		"checkJs": true,
 		"types": ["node"]
 	},
-	"include": ["lib/**/*.ts"],
+	"include": ["lib/**/*.d.ts", "lib/**/*.js"],
 	"exclude": ["node_modules"],
 	"typedocOptions": {
 		"entryPoints": ["./lib/index.d.ts"],
