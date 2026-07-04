@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 export default defineConfig({
 	name: 'Utilium',
 	extends: [eslint.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
-	files: ['lib/**/*.ts'],
+	files: ['lib/**/*.d.ts', 'lib/**/*.js'],
 	languageOptions: {
 		globals: { ...globals.browser, ...globals.node },
 		ecmaVersion: 'latest',
