@@ -13,7 +13,7 @@
 	"include": ["lib/**/*.ts"],
 	"exclude": ["node_modules"],
 	"typedocOptions": {
-		"entryPoints": ["./lib/index.ts"],
+		"entryPoints": ["./lib/index.d.ts"],
 		"out": "docs",
 		"name": "libdnf"
 	}
